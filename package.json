@@ -1,0 +1,21 @@
+{
+  "name": "TargetAdder",
+  "version": "1.0.0",
+  "description": "OutSystems Plugin for targets to Cordova iOS apps",
+  "cordova": {
+    "id": "TargetAdder",
+    "platforms": [
+      "ios"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://www.github.com/andregrillo"
+  },
+  "keywords": [
+    "ecosystem:cordova",
+    "cordova-ios"
+  ],
+  "author": "André Grillo - OutSystems",
+  "license": "MIT"
+}
