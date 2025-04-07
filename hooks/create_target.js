@@ -3,6 +3,25 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+const parseString = require('xml2js').parseString;
+
+/**
+ * Retrieves the project name from config.xml.
+ * @returns {string|null} - The project name.
+ */
+function getProjectName() {
+  var config = fs.readFileSync('config.xml').toString();
+  var name;
+  parseString(config, function (err, result) {
+    if (err) {
+      throw new Error('Unable to parse config.xml: ' + err);
+    }
+    name = result.widget.name.toString();
+    // Remove leading and trailing spaces.
+    name = name.replace(/^\s+|\s+$/g, '');
+  });
+  return name || null;
+}
 
 module.exports = function(context) {
   // Retrieve the command-line arguments for plugin preferences.
@@ -24,6 +43,10 @@ module.exports = function(context) {
   // Log the project root obtained from the context.
   const projectRoot = context.opts.projectRoot;
   console.log(`Project root: ${projectRoot}`);
+  
+  // Get the project name from config.xml and build the xcodeproj path.
+  var projectName = getProjectName();
+  var xcodeprojPath = path.join(projectRoot, 'platforms', 'ios', projectName + ".xcodeproj");
 
   /**
    * Checks if a gem is installed.
@@ -46,15 +69,19 @@ module.exports = function(context) {
   }
 
   // Determine the path to the Ruby script that adds the target.
-  // (Assuming the add_target.rb is located in the same folder as this hook.
-  const rubyScriptPath = path.join(projectRoot, 'plugins', 'outsystems-ios-targetadder-plugin', 'add_target.rb');
+  // (Assuming the add_target.rb is located in the plugin's hooks directory.)
+  const rubyScriptPath = path.join(projectRoot, 'plugins', 'TargetAdder', 'hooks', 'add_target.rb');
   if (!fs.existsSync(rubyScriptPath)) {
     console.error('Ruby script add_target.rb not found!');
     process.exit(1);
   }
 
-  // Execute the Ruby script passing the targetName and bundleID as arguments.
+  // Execute the Ruby script passing the targetName, bundleID and xcodeprojPath as arguments.
+  // The quotes ensure that paths with spaces are treated as a single argument.
   console.log('Executing Ruby script to add target...');
-  execSync(`ruby ${rubyScriptPath} ${targetName} ${bundleID}`, { stdio: 'inherit' });
+  execSync(
+    `ruby "${rubyScriptPath}" "${targetName}" "${bundleID}" "${xcodeprojPath}"`,
+    { stdio: 'inherit' }
+  );
   console.log('Target added successfully!');
 };
