@@ -80,7 +80,7 @@ module.exports = function(context) {
   // The quotes ensure that paths with spaces are treated as a single argument.
   console.log('Executing Ruby script to add target...');
   execSync(
-    `ruby "${rubyScriptPath}" "${targetName}" "${bundleID}" "${xcodeprojPath}"`,
+    `ruby "${rubyScriptPath}" "${targetName}" "${bundleID}" "${xcodeprojPath}" "${projectRoot}"`,
     { stdio: 'inherit' }
   );
   console.log('Target added successfully!');
