@@ -23,8 +23,10 @@ new_target.build_configuration_list.build_configurations.each do |config|
   config.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] = bundle_id
   config.build_settings['CODE_SIGN_STYLE'] = 'Manual'
   config.build_settings['CODE_SIGN_IDENTITY'] = 'Apple Development'
+  #config.build_settings['PROVISIONING_PROFILE_SPECIFIER'] = profile_name
+  #config.build_settings['PROVISIONING_PROFILE'] = profile_name
+  config.build_settings['PROVISIONING_PROFILE'] = profile_uuid
   config.build_settings['PROVISIONING_PROFILE_SPECIFIER'] = profile_name
-  config.build_settings['PROVISIONING_PROFILE'] = profile_name
   config.build_settings['DEVELOPMENT_TEAM'] = team_id unless team_id.nil? || team_id.strip.empty?
 end
 
