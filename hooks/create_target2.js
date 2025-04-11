@@ -179,10 +179,15 @@ module.exports = function (context) {
   //const setProvProfLine = 'buildOpts.provisioningProfile = {"${bundleIdentifier}": "${buildOpts.provisioningProfile}", "com.outsystems.experts.SimpleWidget": "4dcc2d62-d44a-4540-90a8-7a9bfed54542"};\n'
   //const setProvProfLine = `buildOpts.provisioningProfile = {"${bundleIdentifier}": "${buildOpts.provisioningProfile}", "com.outsystems.experts.SimpleWidget": "4dcc2d62-d44a-4540-90a8-7a9bfed54542"};`;
   const setProvProfLine = `
-buildOpts.provisioningProfile = {
-  [bundleIdentifier]: buildOpts.provisioningProfile,
-  "${bundleId}": "${profile.uuid}"
-};
+buildOpts.provisioningProfile = Object.assign(
+  {},
+  typeof buildOpts.provisioningProfile === "object"
+    ? buildOpts.provisioningProfile
+    : { [bundleIdentifier]: buildOpts.provisioningProfile },
+  {
+    "${bundleId}": "${profile.uuid}"
+  }
+);
 `;
   //const setProvProfLine = 'buildOpts.provisioningProfile = {"com.outsystems.experts.iOSTargetAdderSample": "4dcc2d62-d44a-4540-90a8-7a9bfed54542", "com.outsystems.experts.SimpleWidget": "4dcc2d62-d44a-4540-90a8-7a9bfed54542"};\n'
   const logLine = 'console.log("bundleIdentifier: " + bundleIdentifier);\nconsole.log("buildOpts.provisioningProfile: " + buildOpts.provisioningProfile);\nconsole.log("📦 buildOpts ===> " + JSON.stringify(buildOpts, null, 2));\n';
