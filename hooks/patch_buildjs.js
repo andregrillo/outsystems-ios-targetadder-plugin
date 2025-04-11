@@ -31,7 +31,7 @@ module.exports = function (context) {
   const buildJs = fs.readFileSync(buildJsPath, 'utf8');
 
   // Look for where MABS sets exportOptions.provisioningProfiles for main target
-  const insertPoint = `exportOptions.provisioningProfiles = { [bundleIdentifier]: String(buildOpts.provisioningProfile) };`;
+  const insertPoint = `exportOptions.provisioningProfiles = { [bundleIdentifier]: String(buildOpts.provisioningProfile)`;
 
   if (!buildJs.includes(insertPoint)) {
     console.warn('⚠️ Target line not found in build.js. Skipping patch.');
@@ -40,11 +40,7 @@ module.exports = function (context) {
 
   // Build the injection code
   const injectedCode = `
-        // Appended by TargetAdder plugin
-        if (!exportOptions.provisioningProfiles["${patchData.bundleId}"]) {
-            exportOptions.provisioningProfiles["${patchData.bundleId}"] = "${patchData.uuid}";
-            console.log("✅ Added provisioning profile for ${patchData.bundleId}");
-        }`;
+        ", ${patchData.bundleId}: ${patchData.uuid} };"`;
 
   const modifiedBuildJs = buildJs.replace(insertPoint, `${insertPoint}${injectedCode}`);
 
