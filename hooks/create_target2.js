@@ -28,7 +28,6 @@ module.exports = function (context) {
     return defer.promise;
   }
 
-  // Unzip the provisioning-profiles.zip file
   const zipFolder = path.join(context.opts.projectRoot, 'platforms', 'ios', 'www', 'provisioning-profiles');
   const zipFile = path.join(zipFolder, 'provisioning-profiles.zip');
 
@@ -68,7 +67,6 @@ module.exports = function (context) {
   const profile = extractProfileInfoFromPlist(plistPath);
   console.log(`📦 Parsed provisioning profile: ${profile.name} — UUID: ${profile.uuid} — Team ID: ${profile.teamId}`);
 
-  // Step 1: Find and rename the original .mobileprovision file to match UUID
   const wwwPath = path.join(context.opts.projectRoot, 'platforms', 'ios', 'www');
   const provisioningFolder = path.join(wwwPath, 'provisioning-profiles');
   const allFiles = fs.readdirSync(provisioningFolder);
@@ -156,28 +154,13 @@ module.exports = function (context) {
     return defer.promise;
   }
 
-  // ➕ Patch exportOptions.plist to include second target's provisioning profile
-  const exportOptionsPlistPath = path.join(context.opts.projectRoot, 'platforms', 'ios', 'exportOptions.plist');
-  if (fs.existsSync(exportOptionsPlistPath)) {
-    try {
-      const exportPlistRaw = fs.readFileSync(exportOptionsPlistPath, 'utf8');
-      const exportPlist = plist.parse(exportPlistRaw);
-
-      const pluginVars = context.opts.plugin?.variables || {};
-      const targetBundleId = pluginVars.BUNDLE_ID;
-      if (!exportPlist.provisioningProfiles) exportPlist.provisioningProfiles = {};
-
-      if (targetBundleId && profile.uuid) {
-        exportPlist.provisioningProfiles[targetBundleId] = profile.uuid;
-        exportPlist.signingStyle = 'manual';
-        fs.writeFileSync(exportOptionsPlistPath, plist.build(exportPlist), 'utf8');
-        console.log(`✅ Patched exportOptions.plist with: ${targetBundleId} → ${profile.uuid}`);
-      }
-    } catch (err) {
-      console.error("❌ Failed to patch exportOptions.plist:", err);
-    }
-  } else {
-    console.warn("⚠️ exportOptions.plist not found at:", exportOptionsPlistPath);
+  // Store target bundle ID and UUID in a shared file for later use
+  const exportPatchPath = path.join(context.opts.projectRoot, 'patch_export_options.json');
+  try {
+    fs.writeFileSync(exportPatchPath, JSON.stringify({ bundleId, uuid: profile.uuid }, null, 2), 'utf8');
+    console.log(`✅ Saved exportOptions patch info to: ${exportPatchPath}`);
+  } catch (e) {
+    console.warn("⚠️ Could not write exportOptions patch file:", e.message);
   }
 
   defer.resolve(profile);
