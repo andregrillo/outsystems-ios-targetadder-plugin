@@ -7,7 +7,8 @@ bundle_id      = ARGV[1]
 project_path   = ARGV[2]
 file_base_root = ARGV[3]
 profile_name   = ARGV[4]
-team_id        = ARGV[5] # optional
+profile_uuid   = ARGV[5]
+team_id        = ARGV[6]
 
 # Open the Xcode project
 project = Xcodeproj::Project.open(project_path)

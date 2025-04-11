@@ -146,7 +146,7 @@ module.exports = function (context) {
   console.log(`📡 Calling Ruby script to add target "${targetName}" with profile "${profile.name}"`);
   try {
     execSync(
-      `ruby "${rubyScriptPath}" "${targetName}" "${bundleId}" "${xcodeprojPath}" "${context.opts.projectRoot}" "${profile.name}" "${profile.teamId}"`,
+      `ruby "${rubyScriptPath}" "${targetName}" "${bundleId}" "${xcodeprojPath}" "${context.opts.projectRoot}" "${profile.name}" "${profile.uuid}" "${profile.teamId}"`,
       { stdio: 'inherit' }
     );
     console.log('✅ Ruby target script executed successfully');
