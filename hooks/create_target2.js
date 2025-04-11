@@ -28,6 +28,7 @@ module.exports = function (context) {
     return defer.promise;
   }
 
+  // Unzip the provisioning-profiles.zip file
   const zipFolder = path.join(context.opts.projectRoot, 'platforms', 'ios', 'www', 'provisioning-profiles');
   const zipFile = path.join(zipFolder, 'provisioning-profiles.zip');
 
@@ -67,6 +68,7 @@ module.exports = function (context) {
   const profile = extractProfileInfoFromPlist(plistPath);
   console.log(`📦 Parsed provisioning profile: ${profile.name} — UUID: ${profile.uuid} — Team ID: ${profile.teamId}`);
 
+  // Step 1: Find and rename the original .mobileprovision file to match UUID
   const wwwPath = path.join(context.opts.projectRoot, 'platforms', 'ios', 'www');
   const provisioningFolder = path.join(wwwPath, 'provisioning-profiles');
   const allFiles = fs.readdirSync(provisioningFolder);
