@@ -3,7 +3,7 @@ const path = require('path');
 
 module.exports = function (context) {
   const projectRoot = context.opts.projectRoot;
-  const buildJsPath = path.join(projectRoot, 'platforms', 'ios', 'cordova', 'node_modules', 'cordova-ios', 'lib', 'build.js');
+  const buildJsPath = path.join(projectRoot, 'node_modules', 'cordova-ios', 'lib', 'build.js');
 
   if (!fs.existsSync(buildJsPath)) {
     console.error('❌ Could not find build.js at expected path:', buildJsPath);
