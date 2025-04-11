@@ -156,6 +156,30 @@ module.exports = function (context) {
     return defer.promise;
   }
 
+  // ➕ Patch exportOptions.plist to include second target's provisioning profile
+  const exportOptionsPlistPath = path.join(context.opts.projectRoot, 'platforms', 'ios', 'exportOptions.plist');
+  if (fs.existsSync(exportOptionsPlistPath)) {
+    try {
+      const exportPlistRaw = fs.readFileSync(exportOptionsPlistPath, 'utf8');
+      const exportPlist = plist.parse(exportPlistRaw);
+
+      const pluginVars = context.opts.plugin?.variables || {};
+      const targetBundleId = pluginVars.BUNDLE_ID;
+      if (!exportPlist.provisioningProfiles) exportPlist.provisioningProfiles = {};
+
+      if (targetBundleId && profile.uuid) {
+        exportPlist.provisioningProfiles[targetBundleId] = profile.uuid;
+        exportPlist.signingStyle = 'manual';
+        fs.writeFileSync(exportOptionsPlistPath, plist.build(exportPlist), 'utf8');
+        console.log(`✅ Patched exportOptions.plist with: ${targetBundleId} → ${profile.uuid}`);
+      }
+    } catch (err) {
+      console.error("❌ Failed to patch exportOptions.plist:", err);
+    }
+  } else {
+    console.warn("⚠️ exportOptions.plist not found at:", exportOptionsPlistPath);
+  }
+
   defer.resolve(profile);
   return defer.promise;
 };
