@@ -55,6 +55,33 @@ module.exports = function (context) {
   const profile = extractProfileInfoFromPlist(plistPath);
   console.log(`📦 Parsed provisioning profile: ${profile.name} — UUID: ${profile.uuid} — Team ID: ${profile.teamId}`);
 
+  // Copy the .mobileprovision file to final destinations
+  const mobileprovisionFile = path.join(context.opts.projectRoot, 'platforms', 'ios', 'www', `${profile.uuid}.mobileprovision`);
+  if (!fs.existsSync(mobileprovisionFile)) {
+    console.warn(`⚠️ Expected .mobileprovision file not found at: ${mobileprovisionFile}`);
+  } else {
+    const pluginProfileFolder = path.join(context.opts.plugin.dir, 'provisioning-profiles');
+    const platformAppFolder = path.join(context.opts.projectRoot, 'platforms', platform, 'app');
+    const macProvisioningFolder = path.join(os.homedir(), 'Library/MobileDevice/Provisioning Profiles');
+
+    // Ensure folders exist
+    fs.mkdirSync(pluginProfileFolder, { recursive: true });
+    fs.mkdirSync(platformAppFolder, { recursive: true });
+    fs.mkdirSync(macProvisioningFolder, { recursive: true });
+
+    // Copy to plugin dir
+    fs.copyFileSync(mobileprovisionFile, path.join(pluginProfileFolder, `${profile.uuid}.mobileprovision`));
+    console.log(`✅ Copied to plugin folder: ${pluginProfileFolder}`);
+
+    // Copy to platform/app
+    fs.copyFileSync(mobileprovisionFile, path.join(platformAppFolder, `${profile.uuid}.mobileprovision`));
+    console.log(`✅ Copied to iOS app folder: ${platformAppFolder}`);
+
+    // Copy to macOS provisioning path
+    fs.copyFileSync(mobileprovisionFile, path.join(macProvisioningFolder, `${profile.uuid}.mobileprovision`));
+    console.log(`✅ Copied to macOS system provisioning folder`);
+  }
+
   const pluginVars = context.opts.plugin?.variables || {};
   let targetName = pluginVars.TARGET_NAME;
   let bundleId = pluginVars.BUNDLE_ID;
