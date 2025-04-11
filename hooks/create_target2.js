@@ -5,6 +5,7 @@ const fs = require("fs");
 const os = require("os");
 const plist = require("plist");
 const Q = require("q");
+const AdmZip = require("adm-zip");
 const { execSync } = require("child_process");
 
 const {
@@ -25,6 +26,18 @@ module.exports = function (context) {
     log("🚨 Invalid platform", "error");
     defer.reject();
     return defer.promise;
+  }
+
+  // Unzip the provisioning-profiles.zip file
+  const zipFolder = path.join(context.opts.projectRoot, 'platforms', 'ios', 'www', 'provisioning-profiles');
+  const zipFile = path.join(zipFolder, 'provisioning-profiles.zip');
+
+  if (fs.existsSync(zipFile)) {
+    const zip = new AdmZip(zipFile);
+    zip.extractAllTo(zipFolder, true);
+    console.log(`✅ Zip file extracted successfully to: ${zipFolder}`);
+  } else {
+    console.warn(`⚠️ Expected zip file not found at: ${zipFile}`);
   }
 
   const plistPath = path.join(context.opts.projectRoot, 'platforms', 'ios', 'www', 'decoded_profile.plist');
@@ -55,30 +68,36 @@ module.exports = function (context) {
   const profile = extractProfileInfoFromPlist(plistPath);
   console.log(`📦 Parsed provisioning profile: ${profile.name} — UUID: ${profile.uuid} — Team ID: ${profile.teamId}`);
 
-  // Copy the .mobileprovision file to final destinations
-  const mobileprovisionFile = path.join(context.opts.projectRoot, 'platforms', 'ios', 'www', `${profile.uuid}.mobileprovision`);
-  if (!fs.existsSync(mobileprovisionFile)) {
-    console.warn(`⚠️ Expected .mobileprovision file not found at: ${mobileprovisionFile}`);
+  // Step 1: Find and rename the original .mobileprovision file to match UUID
+  const wwwPath = path.join(context.opts.projectRoot, 'platforms', 'ios', 'www');
+  const provisioningFolder = path.join(wwwPath, 'provisioning-profiles');
+  const allFiles = fs.readdirSync(provisioningFolder);
+  const originalProvisionFile = allFiles.find(f => f.endsWith('.mobileprovision'));
+
+  if (!originalProvisionFile) {
+    console.warn(`⚠️ No .mobileprovision file found in: ${provisioningFolder}`);
   } else {
+    const originalPath = path.join(provisioningFolder, originalProvisionFile);
+    const renamedPath = path.join(wwwPath, `${profile.uuid}.mobileprovision`);
+
+    fs.copyFileSync(originalPath, renamedPath);
+    console.log(`✅ Copied and renamed ${originalProvisionFile} → ${profile.uuid}.mobileprovision`);
+
     const pluginProfileFolder = path.join(context.opts.plugin.dir, 'provisioning-profiles');
     const platformAppFolder = path.join(context.opts.projectRoot, 'platforms', platform, 'app');
     const macProvisioningFolder = path.join(os.homedir(), 'Library/MobileDevice/Provisioning Profiles');
 
-    // Ensure folders exist
     fs.mkdirSync(pluginProfileFolder, { recursive: true });
     fs.mkdirSync(platformAppFolder, { recursive: true });
     fs.mkdirSync(macProvisioningFolder, { recursive: true });
 
-    // Copy to plugin dir
-    fs.copyFileSync(mobileprovisionFile, path.join(pluginProfileFolder, `${profile.uuid}.mobileprovision`));
+    fs.copyFileSync(renamedPath, path.join(pluginProfileFolder, `${profile.uuid}.mobileprovision`));
     console.log(`✅ Copied to plugin folder: ${pluginProfileFolder}`);
 
-    // Copy to platform/app
-    fs.copyFileSync(mobileprovisionFile, path.join(platformAppFolder, `${profile.uuid}.mobileprovision`));
+    fs.copyFileSync(renamedPath, path.join(platformAppFolder, `${profile.uuid}.mobileprovision`));
     console.log(`✅ Copied to iOS app folder: ${platformAppFolder}`);
 
-    // Copy to macOS provisioning path
-    fs.copyFileSync(mobileprovisionFile, path.join(macProvisioningFolder, `${profile.uuid}.mobileprovision`));
+    fs.copyFileSync(renamedPath, path.join(macProvisioningFolder, `${profile.uuid}.mobileprovision`));
     console.log(`✅ Copied to macOS system provisioning folder`);
   }
 
