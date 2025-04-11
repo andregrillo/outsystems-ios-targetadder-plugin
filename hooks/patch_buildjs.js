@@ -39,7 +39,8 @@ module.exports = function (context) {
   }
 
   // Build the injection code
-  const injectedCode = `, ${patchData.bundleId}: ${patchData.uuid}`;
+  const injectedCode = ", " + patchData.bundleId + ": " + patchData.uuid;
+  //const injectedCode = `, ${patchData.bundleId}: ${patchData.uuid}`;
 
   const modifiedBuildJs = buildJs.replace(insertPoint, `${insertPoint}${injectedCode}`);
 
