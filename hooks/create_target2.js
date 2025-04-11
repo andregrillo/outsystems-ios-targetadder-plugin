@@ -157,13 +157,55 @@ module.exports = function (context) {
   }
 
   // Store target bundle ID and UUID in a shared file for later use
-  const exportPatchPath = path.join(context.opts.projectRoot, 'patch_export_options.json');
+  /*const exportPatchPath = path.join(context.opts.projectRoot, 'patch_export_options.json');
   try {
     fs.writeFileSync(exportPatchPath, JSON.stringify({ bundleId, uuid: profile.uuid }, null, 2), 'utf8');
     console.log(`✅ Saved exportOptions patch info to: ${exportPatchPath}`);
   } catch (e) {
     console.warn("⚠️ Could not write exportOptions patch file:", e.message);
   }
+  */
+
+  const buildJsPath = path.join(projectRoot, 'node_modules', 'cordova-ios', 'lib', 'build.js');
+
+  if (!fs.existsSync(buildJsPath)) {
+    console.error('❌ Could not find build.js at expected path:', buildJsPath);
+    return;
+  }
+
+  let content = fs.readFileSync(buildJsPath, 'utf8');
+
+  const matchLine = 'if (buildOpts.provisioningProfile && bundleIdentifier)';
+  //const setProvProfLine = 'buildOpts.provisioningProfile = {"${bundleIdentifier}": "${buildOpts.provisioningProfile}", "com.outsystems.experts.SimpleWidget": "4dcc2d62-d44a-4540-90a8-7a9bfed54542"};\n'
+  //const setProvProfLine = `buildOpts.provisioningProfile = {"${bundleIdentifier}": "${buildOpts.provisioningProfile}", "com.outsystems.experts.SimpleWidget": "4dcc2d62-d44a-4540-90a8-7a9bfed54542"};`;
+  const setProvProfLine = `
+buildOpts.provisioningProfile = {
+  [bundleIdentifier]: buildOpts.provisioningProfile,
+  "${bundleId}": "${profile.uuid}"
+};
+`;
+  //const setProvProfLine = 'buildOpts.provisioningProfile = {"com.outsystems.experts.iOSTargetAdderSample": "4dcc2d62-d44a-4540-90a8-7a9bfed54542", "com.outsystems.experts.SimpleWidget": "4dcc2d62-d44a-4540-90a8-7a9bfed54542"};\n'
+  const logLine = 'console.log("📦 buildOpts ===> " + JSON.stringify(buildOpts, null, 2));\n';
+
+  if (content.includes(logLine.trim())) {
+    console.log('ℹ️ Log line already added. Skipping.');
+    return;
+  }
+
+  const newContent = content.replace(
+    matchLine,
+    setProvProfLine + logLine + matchLine
+  );
+
+  if (newContent === content) {
+    console.warn('⚠️ Could not find the target line to patch. No changes made.');
+    return;
+  }
+
+  fs.writeFileSync(buildJsPath, newContent, 'utf8');
+  console.log('✅ Successfully injected buildOpts log into build.js');
+
+
 
   defer.resolve(profile);
   return defer.promise;
