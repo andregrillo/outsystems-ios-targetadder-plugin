@@ -15,22 +15,22 @@ project = Xcodeproj::Project.open(project_path)
 # Create new target
 new_target = project.new_target(:app_extension, target_name, :ios, nil)
 
-# Uncomment for specific target types, like WidgetKit
+# Optional: uncomment to set product type explicitly
 # new_target.product_type = "com.apple.product-type.app-extension.widgetkit"
 
-# Set build settings
+# Set build settings for manual signing
 new_target.build_configuration_list.build_configurations.each do |config|
   config.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] = bundle_id
-  config.build_settings['PROVISIONING_PROFILE_SPECIFIER'] = profile_name
+  config.build_settings['CODE_SIGN_STYLE'] = 'Manual'
   config.build_settings['CODE_SIGN_IDENTITY'] = 'Apple Development'
+  config.build_settings['PROVISIONING_PROFILE_SPECIFIER'] = profile_name
+  config.build_settings['PROVISIONING_PROFILE'] = profile_name
   config.build_settings['DEVELOPMENT_TEAM'] = team_id unless team_id.nil? || team_id.strip.empty?
 end
 
 # Create or find target group
 target_group = project.main_group[target_name]
-unless target_group
-  target_group = project.main_group.new_group(target_name, nil)
-end
+target_group ||= project.main_group.new_group(target_name, nil)
 
 # Base folder with files to add
 base_folder = File.join(file_base_root, target_name)
@@ -40,16 +40,14 @@ copy_phase = new_target.new_copy_files_build_phase("Copy Resources")
 copy_phase.dst_subfolder_spec = "resources"
 copy_phase.dst_path = ""
 
-resource_files = Dir.glob(File.join(base_folder, "Resources/**/*.*"))
-resource_files.each do |file_path|
+Dir.glob(File.join(base_folder, "Resources/**/*.*")).each do |file_path|
   next if File.directory?(file_path)
   file_ref = target_group.find_file_by_path(file_path) || target_group.new_file(file_path)
   copy_phase.add_file_reference(file_ref)
 end
 
 # Add source files
-source_files = Dir.glob(File.join(base_folder, "Sources/**/*.swift"))
-source_files.each do |file_path|
+Dir.glob(File.join(base_folder, "Sources/**/*.swift")).each do |file_path|
   next if File.directory?(file_path)
   file_ref = target_group.find_file_by_path(file_path) || target_group.new_file(file_path)
   new_target.source_build_phase.add_file_reference(file_ref)
@@ -61,7 +59,6 @@ unless framework_files.empty?
   frameworks_phase = new_target.new_copy_files_build_phase("Embed Frameworks")
   frameworks_phase.dst_subfolder_spec = "frameworks"
   frameworks_phase.dst_path = ""
-
   framework_files.each do |file_path|
     next unless File.directory?(file_path)
     file_ref = target_group.find_file_by_path(file_path) || target_group.new_file(file_path)
@@ -87,4 +84,4 @@ project.save
 puts "✅ New target '#{target_name}' created with:"
 puts "   - Bundle ID: #{bundle_id}"
 puts "   - Provisioning Profile: #{profile_name}"
-puts "   - Team ID: #{team_id.nil? || team_id.empty? ? 'Not set' : team_id}"
+puts "   - Team ID: #{team_id.nil? || team_id.empty? ? 'Not set' : team_id}'"
