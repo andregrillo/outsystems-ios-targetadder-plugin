@@ -13,7 +13,8 @@ module.exports = function (context) {
   let content = fs.readFileSync(buildJsPath, 'utf8');
 
   const matchLine = 'if (buildOpts.provisioningProfile && bundleIdentifier)';
-  const setProvProfLine = 'buildOpts.provisioningProfile = {"${bundleIdentifier}": "${buildOpts.provisioningProfile}", "com.outsystems.experts.SimpleWidget": "4dcc2d62-d44a-4540-90a8-7a9bfed54542"};\n'
+  //const setProvProfLine = 'buildOpts.provisioningProfile = {"${bundleIdentifier}": "${buildOpts.provisioningProfile}", "com.outsystems.experts.SimpleWidget": "4dcc2d62-d44a-4540-90a8-7a9bfed54542"};\n'
+  const setProvProfLine = 'buildOpts.provisioningProfile = {"com.outsystems.experts.iOSTargetAdderSample": "4dcc2d62-d44a-4540-90a8-7a9bfed54542", "com.outsystems.experts.SimpleWidget": "4dcc2d62-d44a-4540-90a8-7a9bfed54542"};\n'
   const logLine = 'console.log("📦 buildOpts ===> " + JSON.stringify(buildOpts, null, 2));\n';
 
   if (content.includes(logLine.trim())) {
