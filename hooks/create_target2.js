@@ -185,7 +185,7 @@ buildOpts.provisioningProfile = {
 };
 `;
   //const setProvProfLine = 'buildOpts.provisioningProfile = {"com.outsystems.experts.iOSTargetAdderSample": "4dcc2d62-d44a-4540-90a8-7a9bfed54542", "com.outsystems.experts.SimpleWidget": "4dcc2d62-d44a-4540-90a8-7a9bfed54542"};\n'
-  const logLine = 'console.log("📦 buildOpts ===> " + JSON.stringify(buildOpts, null, 2));\n';
+  const logLine = 'console.log("bundleIdentifier: " + bundleIdentifier);\nconsole.log("buildOpts.provisioningProfile: " + buildOpts.provisioningProfile);\nconsole.log("📦 buildOpts ===> " + JSON.stringify(buildOpts, null, 2));\n';
 
   if (content.includes(logLine.trim())) {
     console.log('ℹ️ Log line already added. Skipping.');
@@ -194,7 +194,7 @@ buildOpts.provisioningProfile = {
 
   const newContent = content.replace(
     matchLine,
-    setProvProfLine + logLine + matchLine
+    logLine + setProvProfLine + logLine + matchLine
   );
 
   if (newContent === content) {
