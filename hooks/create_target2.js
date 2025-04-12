@@ -187,7 +187,7 @@ module.exports = function (context) {
   `  {\n    "${bundleId}": "${profile.uuid}"\n  }\n` +
   ');\n';*/
   //const setProvProfLine = 'buildOpts.provisioningProfile = {"com.outsystems.experts.iOSTargetAdderSample": "4dcc2d62-d44a-4540-90a8-7a9bfed54542", "com.outsystems.experts.SimpleWidget": "4dcc2d62-d44a-4540-90a8-7a9bfed54542"};\n'
-  const setProvProfLine = "const provisioningProfile = buildOpts.provisioningProfile;\nbuildOpts.provisioningProfile = {\"${bundleIdentifier}\": \"${provisioningProfile}\", \"" + ${profile.name} + "\": \"" + ${profile.uuid} + "\"};\n;"
+  const setProvProfLine = "const provisioningProfile = buildOpts.provisioningProfile;\nbuildOpts.provisioningProfile = {\"${bundleIdentifier}\": \"${provisioningProfile}\", \"" + profile.name + "\": \"" + profile.uuid + "\"};\n;"
   const logLine = 'console.log("bundleIdentifier: " + bundleIdentifier);\nconsole.log("provisioningProfile: " + provisioningProfile);\nconsole.log("📦 buildOpts ===> " + JSON.stringify(buildOpts, null, 2));\n';
 
   if (content.includes(logLine.trim())) {
