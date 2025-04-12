@@ -178,16 +178,22 @@ module.exports = function (context) {
   const matchLine = 'if (buildOpts.provisioningProfile && bundleIdentifier)';
   //const setProvProfLine = 'buildOpts.provisioningProfile = {"${bundleIdentifier}": "${buildOpts.provisioningProfile}", "com.outsystems.experts.SimpleWidget": "4dcc2d62-d44a-4540-90a8-7a9bfed54542"};\n'
   //const setProvProfLine = `buildOpts.provisioningProfile = {"${bundleIdentifier}": "${buildOpts.provisioningProfile}", "com.outsystems.experts.SimpleWidget": "4dcc2d62-d44a-4540-90a8-7a9bfed54542"};`;
-  const setProvProfLine =
+  /*const setProvProfLine =
   'buildOpts.provisioningProfile = Object.assign(\n' +
   '  {},\n' +
   '  typeof buildOpts.provisioningProfile === "object"\n' +
   '    ? buildOpts.provisioningProfile\n' +
   '    : { [bundleIdentifier]: buildOpts.provisioningProfile },\n' +
   `  {\n    "${bundleId}": "${profile.uuid}"\n  }\n` +
-  ');\n';
+  ');\n';*/
   //const setProvProfLine = 'buildOpts.provisioningProfile = {"com.outsystems.experts.iOSTargetAdderSample": "4dcc2d62-d44a-4540-90a8-7a9bfed54542", "com.outsystems.experts.SimpleWidget": "4dcc2d62-d44a-4540-90a8-7a9bfed54542"};\n'
-  const logLine = 'console.log("bundleIdentifier: " + bundleIdentifier);\nconsole.log("buildOpts.provisioningProfile: " + buildOpts.provisioningProfile);\nconsole.log("📦 buildOpts ===> " + JSON.stringify(buildOpts, null, 2));\n';
+  const setProvProfLine =
+  'const provisioningProfile = buildOpts.provisioningProfile;\n' +
+  'const profileMap = {};\n' +
+  'profileMap[String(bundleIdentifier)] = String(provisioningProfile);\n' +
+  'profileMap["com.outsystems.experts.SimpleWidget"] = "4dcc2d62-d44a-4540-90a8-7a9bfed54542";\n' +
+  'buildOpts.provisioningProfile = profileMap;\n';
+  const logLine = 'console.log("bundleIdentifier: " + bundleIdentifier);\nconsole.log("provisioningProfile: " + provisioningProfile);\nconsole.log("📦 buildOpts ===> " + JSON.stringify(buildOpts, null, 2));\n';
 
   if (content.includes(logLine.trim())) {
     console.log('ℹ️ Log line already added. Skipping.');
