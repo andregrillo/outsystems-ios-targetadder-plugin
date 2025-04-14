@@ -8,8 +8,8 @@
 		<preference name="SECOND_TARGET_NAME" />
 		<preference name="SECOND_TARGET_BUNDLE_ID" />
 		
-		<hook type="before_plugin_install" src="hooks/unzip_files.js"/>
-		<hook type="after_plugin_install" src="hooks/create_target2.js"/>
+		<!--<hook type="before_plugin_install" src="hooks/unzip_files.js"/>-->
+		<hook type="after_plugin_install" src="hooks/create_target3.js"/>
 		<!-- <hook type="after_plugin_install" src="hooks/patch_buildjs.js"/> 
 		<hook type="after_plugin_install" src="hooks/check_buildOpts.js"/>-->
 		<hook type="after_plugin_add" src="hooks/add_swift_support.js" />
