@@ -204,7 +204,7 @@ if (buildOpts.provisioningProfile && bundleIdentifier) {
       return;
     }
 
-    const projectPath = path.join(context.opts.projectRoot, 'platforms', 'ios', `${projectName}`);
+    const projectPath = path.join(context.opts.projectRoot, 'platforms', 'ios', `${secondTargetName}`);
     const xcodeprojPath = path.join(context.opts.projectRoot, 'platforms', 'ios', `${projectName}.xcodeproj`);
     const rubyScriptPath = path.join(context.opts.plugin.dir, 'hooks', 'add_target.rb');
 
