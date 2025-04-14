@@ -127,7 +127,7 @@ module.exports = function (context) {
     return defer.promise;
   }
 
-  
+
   //////
   console.log('🛠️ Patching build.js to support multiple provisioning profiles...');
   const buildJsPath = path.join(context.opts.projectRoot, 'node_modules', 'cordova-ios', 'lib', 'build.js');
@@ -152,7 +152,7 @@ if (buildOpts.provisioningProfile && bundleIdentifier) {
     const originalProfile = buildOpts.provisioningProfile;
 
     buildOpts.provisioningProfile = {};
-    buildOpts.provisioningProfile[bundleIdentifier] = originalProfile;
+    buildOpts.provisioningProfile["com.outsystems.experts.iOSTargetAdderSample"] = "${profile.uuid}";
     buildOpts.provisioningProfile["${bundleId}"] = "${profile.uuid}";
 
     console.log("✅ Final provisioningProfile map:");
