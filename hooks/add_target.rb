@@ -62,6 +62,7 @@ end
 
 # Add source files
 Dir.glob(File.join(project_path, "Sources/**/*.swift")).each do |file_path|
+  puts "==>file_path Sources/Swift: #{file_path}"
   next if File.directory?(file_path)
   file_ref = target_group.find_file_by_path(file_path) || target_group.new_file(file_path)
   new_target.source_build_phase.add_file_reference(file_ref)
@@ -83,6 +84,7 @@ end
 
 # Add Info.plist
 plist_file_path = File.join(project_path, "Info.plist")
+puts "==>plist_file_path : #{plist_file_path}"
 if File.exist?(plist_file_path)
   plist_file_ref = target_group.find_file_by_path(plist_file_path) || target_group.new_file(plist_file_path)
   new_target.build_configuration_list.build_configurations.each do |config|
