@@ -11,6 +11,15 @@ profile_name   = ARGV[5]
 profile_uuid   = ARGV[6]
 team_id        = ARGV[7]
 
+puts "==>target_name : #{target_name}"
+puts "==>bundle_id : #{bundle_id}"
+puts "==>xcodeproj_path : #{xcodeproj_path}"
+puts "==>project_path : #{project_path}"
+puts "==>file_base_root : #{file_base_root}"
+puts "==>profile_name : #{profile_name}"
+puts "==>profile_uuid : #{profile_uuid}"
+puts "==>team_id : #{team_id}"
+
 # Open the Xcode project
 project = Xcodeproj::Project.open(xcodeproj_path)
 
@@ -45,6 +54,7 @@ copy_phase.dst_subfolder_spec = "resources"
 copy_phase.dst_path = ""
 
 Dir.glob(File.join(project_path, "Resources/**/*.*")).each do |file_path|
+  puts "==>file_path : #{file_path}"
   next if File.directory?(file_path)
   file_ref = target_group.find_file_by_path(file_path) || target_group.new_file(file_path)
   copy_phase.add_file_reference(file_ref)
