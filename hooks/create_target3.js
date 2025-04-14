@@ -110,7 +110,7 @@ module.exports = function (context) {
     console.log(`📦 Parsed profile 1: ${profile1.name} — ${profile1.uuid}`);
     console.log(`📦 Parsed profile 2: ${profile2.name} — ${profile2.uuid}`);
 
-    // Rename and copy profile 2 to multiple places
+    // Rename and copy profile 2 
     const wwwPath = path.join(context.opts.projectRoot, 'platforms', 'ios', 'www');
     const provisioningFolder = path.join(wwwPath, 'provisioning-profiles');
     const allFiles = fs.readdirSync(provisioningFolder);
@@ -118,25 +118,38 @@ module.exports = function (context) {
 
     if (originalProvisionFile) {
       const originalPath = path.join(provisioningFolder, originalProvisionFile);
-      const renamedPath = path.join(provisioningFolder, `${profile2.uuid}.mobileprovision`);
+      const renamedFile = `${profile2.uuid}.mobileprovision`;
+      const renamedPath = path.join(provisioningFolder, renamedFile);
+      const targetPath = path.join(os.homedir(), 'Library/MobileDevice/Provisioning Profiles', renamedFile);
 
+      console.log(`🔧 Attempting to rename: ${originalPath}`);
+      console.log(`🔧 New path will be: ${renamedPath}`);
       fs.renameSync(originalPath, renamedPath);
-      console.log(`✅ Renamed ${originalProvisionFile} → ${profile2.uuid}.mobileprovision`);
+      console.log(`✅ Renamed ${originalProvisionFile} → ${renamedFile}`);
 
-      // Wait until the renamed file is truly available
-      let retries = 5;
+      // Wait for file system to confirm existence
+      let retries = 30;
       while (!fs.existsSync(renamedPath) && retries > 0) {
-        console.warn(`⏳ Waiting for file system to catch up: ${renamedPath}`);
-        Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 100);
+        console.warn(`⏳ Waiting for ${renamedPath} to appear...`);
+        Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 200); // wait 200ms
         retries--;
       }
 
-      // Now copy to Library path
-      fs.copyFileSync(
-        renamedPath,
-        path.join(os.homedir(), 'Library/MobileDevice/Provisioning Profiles', `${profile2.uuid}.mobileprovision`)
-      );
-      console.log(`✅ ${profile2.uuid}.mobileprovision copied to: Library/MobileDevice/Provisioning Profiles`);
+      if (!fs.existsSync(renamedPath)) {
+        console.error(`❌ File still not found after rename: ${renamedPath}`);
+        defer.reject();
+        return;
+      }
+
+      console.log(`📦 Confirmed file exists. Preparing to copy to: ${targetPath}`);
+      const targetDir = path.dirname(targetPath);
+      if (!fs.existsSync(targetDir)) {
+        fs.mkdirSync(targetDir, { recursive: true });
+        console.log(`📁 Created target directory: ${targetDir}`);
+      }
+
+      fs.copyFileSync(renamedPath, targetPath);
+      console.log(`✅ ${renamedFile} copied to macOS provisioning folder`);
     }
 
     // Patch build.js
