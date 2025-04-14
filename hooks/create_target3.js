@@ -5,7 +5,6 @@ const fs = require("fs");
 const os = require("os");
 const plist = require("plist");
 const Q = require("q");
-const AdmZip = require("adm-zip");
 const { execSync } = require("child_process");
 const installPrerequisites = require("./install_prerequisites.js");
 
@@ -31,6 +30,15 @@ module.exports = function (context) {
 
   // Step 0: Install prerequisites first
   installPrerequisites(context).then(() => {
+    let AdmZip;
+    try {
+      AdmZip = require("adm-zip");
+    } catch (e) {
+      console.error("🚨 'adm-zip' module not found after installing prerequisites.");
+      defer.reject();
+      return;
+    }
+
     // Get args
     const args = process.argv;
     let bundleId1, secondTargetName, bundleId2;
