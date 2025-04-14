@@ -194,7 +194,7 @@ if (buildOpts.provisioningProfile && bundleIdentifier) {
 
   if (content.includes(searchLine)) {
     content = content.replace(searchLine, replacementBlock);
-    fs.writeFileSync(buildScript, content, 'utf-8');
+    fs.writeFileSync(buildJsPath, content, 'utf-8');
     console.log('✅ build.js patched successfully.');
   } else {
     console.warn('❌ Could not find the target line to patch.');
