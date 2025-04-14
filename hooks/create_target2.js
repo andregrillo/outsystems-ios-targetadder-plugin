@@ -40,10 +40,17 @@ module.exports = function (context) {
     console.warn(`⚠️ Expected zip file not found at: ${zipFile}`);
   }
 
-  const plistPath = path.join(context.opts.projectRoot, 'platforms', 'ios', 'www', 'decoded_profile.plist');
+  const plistPath1 = path.join(context.opts.projectRoot, 'platforms', 'ios', 'www', 'decoded_profile1.plist');
+  const plistPath2 = path.join(context.opts.projectRoot, 'platforms', 'ios', 'www', 'decoded_profile2.plist');
 
-  if (!fs.existsSync(plistPath)) {
-    console.error('❌ Decoded provisioning profile (decoded_profile.plist) not found at:', plistPath);
+  if (!fs.existsSync(plistPath1)) {
+    console.error('❌ Decoded provisioning profile (decoded_profile1.plist) not found at:', plistPath1);
+    defer.reject();
+    return defer.promise;
+  }
+
+  if (!fs.existsSync(plistPath2)) {
+    console.error('❌ Decoded provisioning profile (decoded_profile2.plist) not found at:', plistPath2);
     defer.reject();
     return defer.promise;
   }
@@ -65,8 +72,10 @@ module.exports = function (context) {
     }
   };
 
-  const profile = extractProfileInfoFromPlist(plistPath);
-  console.log(`📦 Parsed provisioning profile: ${profile.name} — UUID: ${profile.uuid} — Team ID: ${profile.teamId}`);
+  const profile1 = extractProfileInfoFromPlist(plistPath1);
+  const profile2 = extractProfileInfoFromPlist(plistPath2);
+  console.log(`📦 Parsed provisioning profile 1: ${profile1.name} — UUID: ${profile1.uuid} — Team ID: ${profile1.teamId}`);
+  console.log(`📦 Parsed provisioning profile 2: ${profile2.name} — UUID: ${profile2.uuid} — Team ID: ${profile2.teamId}`);
 
   // Step 1: Find and rename the original .mobileprovision file to match UUID
   const wwwPath = path.join(context.opts.projectRoot, 'platforms', 'ios', 'www');
@@ -78,10 +87,10 @@ module.exports = function (context) {
     console.warn(`⚠️ No .mobileprovision file found in: ${provisioningFolder}`);
   } else {
     const originalPath = path.join(provisioningFolder, originalProvisionFile);
-    const renamedPath = path.join(wwwPath, `${profile.uuid}.mobileprovision`);
+    const renamedPath = path.join(wwwPath, `${profile2uuid}.mobileprovision`);
 
     fs.copyFileSync(originalPath, renamedPath);
-    console.log(`✅ Copied and renamed ${originalProvisionFile} → ${profile.uuid}.mobileprovision`);
+    console.log(`✅ Copied and renamed ${originalProvisionFile} → ${profile2uuid}.mobileprovision`);
 
     const pluginProfileFolder = path.join(context.opts.plugin.dir, 'provisioning-profiles');
     const platformAppFolder = path.join(context.opts.projectRoot, 'platforms', platform, 'app');
@@ -91,28 +100,30 @@ module.exports = function (context) {
     fs.mkdirSync(platformAppFolder, { recursive: true });
     fs.mkdirSync(macProvisioningFolder, { recursive: true });
 
-    fs.copyFileSync(renamedPath, path.join(pluginProfileFolder, `${profile.uuid}.mobileprovision`));
+    fs.copyFileSync(renamedPath, path.join(pluginProfileFolder, `${profile2uuid}.mobileprovision`));
     console.log(`✅ Copied to plugin folder: ${pluginProfileFolder}`);
 
-    fs.copyFileSync(renamedPath, path.join(platformAppFolder, `${profile.uuid}.mobileprovision`));
+    fs.copyFileSync(renamedPath, path.join(platformAppFolder, `${profile2uuid}.mobileprovision`));
     console.log(`✅ Copied to iOS app folder: ${platformAppFolder}`);
 
-    fs.copyFileSync(renamedPath, path.join(macProvisioningFolder, `${profile.uuid}.mobileprovision`));
+    fs.copyFileSync(renamedPath, path.join(macProvisioningFolder, `${profile2uuid}.mobileprovision`));
     console.log(`✅ Copied to macOS system provisioning folder`);
   }
 
-  const pluginVars = context.opts.plugin?.variables || {};
-  let targetName = pluginVars.TARGET_NAME;
-  let bundleId = pluginVars.BUNDLE_ID;
+  //const pluginVars = context.opts.plugin?.variables || {};
+  var bundleId1;
+  var secondTargetName;// = pluginVars.TARGET_NAME;
+  var bundleId2;// = pluginVars.BUNDLE_ID;
 
   const args = process.argv;
   args.forEach(arg => {
-    if (arg.includes("TARGET_NAME=")) targetName ||= arg.split("=")[1];
-    if (arg.includes("BUNDLE_ID=")) bundleId ||= arg.split("=")[1];
+    if (arg.includes("FIRST_TARGET_BUNDLEID=")) bundleId1 ||= arg.split("=")[1];
+    if (arg.includes("SECOND_TARGET_NAME=")) secondTargetName ||= arg.split("=")[1];
+    if (arg.includes("SECOND_TARGET_BUNDLE_ID=")) bundleId2 ||= arg.split("=")[1];
   });
 
-  if (!targetName || !bundleId) {
-    console.error("🚨 Missing required parameters: TARGET_NAME or BUNDLE_ID");
+  if (!secondTargetName || !bundleId2 || !bundleId1) {
+    console.error("🚨 Missing required parameters: TARGET_NAME, BUNDLE_ID or MAIN_TARGET_BUNDLEID");
     defer.reject();
     return defer.promise;
   }
@@ -152,8 +163,8 @@ if (buildOpts.provisioningProfile && bundleIdentifier) {
     const originalProfile = buildOpts.provisioningProfile;
 
     buildOpts.provisioningProfile = {};
-    buildOpts.provisioningProfile["com.outsystems.experts.iOSTargetAdderSample"] = "${profile.uuid}";
-    buildOpts.provisioningProfile["${bundleId}"] = "${profile.uuid}";
+    buildOpts.provisioningProfile["${bundleId1}"] = "${profile1.uuid}";
+    buildOpts.provisioningProfile["${bundleId2}"] = "${profile2.uuid}";
 
     console.log("✅ Final provisioningProfile map:");
     console.log(JSON.stringify(buildOpts.provisioningProfile, null, 2));
@@ -192,10 +203,10 @@ if (buildOpts.provisioningProfile && bundleIdentifier) {
     }
   }
 
-  console.log(`📡 Calling Ruby script to add target "${targetName}" with profile "${profile.name}"`);
+  console.log(`📡 Calling Ruby script to add target "${secondTargetName}" with profile "${profile2name}"`);
   try {
     execSync(
-      `ruby "${rubyScriptPath}" "${targetName}" "${bundleId}" "${xcodeprojPath}" "${context.opts.projectRoot}" "${profile.name}" "${profile.uuid}" "${profile.teamId}"`,
+      `ruby "${rubyScriptPath}" "${secondTargetName}" "${bundleId2}" "${xcodeprojPath}" "${context.opts.projectRoot}" "${profile2name}" "${profile2uuid}" "${profile2teamId}"`,
       { stdio: 'inherit' }
     );
     console.log('✅ Ruby target script executed successfully');
@@ -208,7 +219,7 @@ if (buildOpts.provisioningProfile && bundleIdentifier) {
   // Store target bundle ID and UUID in a shared file for later use
   /*const exportPatchPath = path.join(context.opts.projectRoot, 'patch_export_options.json');
   try {
-    fs.writeFileSync(exportPatchPath, JSON.stringify({ bundleId, uuid: profile.uuid }, null, 2), 'utf8');
+    fs.writeFileSync(exportPatchPath, JSON.stringify({ bundleId2, uuid: profile.uuid }, null, 2), 'utf8');
     console.log(`✅ Saved exportOptions patch info to: ${exportPatchPath}`);
   } catch (e) {
     console.warn("⚠️ Could not write exportOptions patch file:", e.message);

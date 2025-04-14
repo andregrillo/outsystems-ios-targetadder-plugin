@@ -4,8 +4,9 @@
 	xmlns:android="http://schemas.android.com/apk/res/android">
 	<name>TargetAdder</name>
 	<platform name="ios">
-		<preference name="TARGET_NAME" />
-		<preference name="BUNDLE_ID" />
+		<preference name="FIRST_TARGET_BUNDLEID" />
+		<preference name="SECOND_TARGET_NAME" />
+		<preference name="SECOND_TARGET_BUNDLE_ID" />
 		
 		<hook type="before_plugin_install" src="hooks/unzip_files.js"/>
 		<hook type="after_plugin_install" src="hooks/create_target2.js"/>
