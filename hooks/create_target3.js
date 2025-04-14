@@ -120,11 +120,14 @@ module.exports = function (context) {
       const originalPath = path.join(provisioningFolder, originalProvisionFile);
       const renamedPath = path.join(wwwPath, `${profile2.uuid}.mobileprovision`);
 
-      fs.copyFileSync(originalPath, renamedPath);
-      fs.copyFileSync(renamedPath, path.join(context.opts.plugin.dir, 'provisioning-profiles', `${profile2.uuid}.mobileprovision`));
-      fs.copyFileSync(renamedPath, path.join(context.opts.projectRoot, 'platforms', platform, 'app', `${profile2.uuid}.mobileprovision`));
+      fs.renameSync(originalPath, renamedPath);
+      console.log(`✅ Renamed ${originalProvisionFile} → ${profile2.uuid}.mobileprovision`);
+
+      //fs.copyFileSync(originalPath, renamedPath);
+      //fs.copyFileSync(renamedPath, path.join(context.opts.plugin.dir, 'provisioning-profiles', `${profile2.uuid}.mobileprovision`));
+      //fs.copyFileSync(renamedPath, path.join(context.opts.projectRoot, 'platforms', platform, 'app', `${profile2.uuid}.mobileprovision`));
       fs.copyFileSync(renamedPath, path.join(os.homedir(), 'Library/MobileDevice/Provisioning Profiles', `${profile2.uuid}.mobileprovision`));
-      console.log(`✅ ${originalProvisionFile} copied and renamed across necessary paths`);
+      console.log(`✅ ${originalProvisionFile} copied to: Library/MobileDevice/Provisioning Profiles`);
     }
 
     // Patch build.js
