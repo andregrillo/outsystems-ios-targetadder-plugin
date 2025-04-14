@@ -182,10 +182,18 @@ module.exports = function (context) {
 const provisioningProfile = buildOpts.provisioningProfile;
 console.log("provisioningProfile: " + provisioningProfile);
 console.log("📦 buildOpts ===> " + JSON.stringify(buildOpts, null, 2));
-buildOpts.provisioningProfile = {
-  [bundleIdentifier]: provisioningProfile,
-  "${bundleId}": "${profile.uuid}"
-};
+
+if (buildOpts.provisioningProfile && bundleIdentifier) {
+    console.log("🔧 Patching buildOpts.provisioningProfile with multiple entries...");
+    const originalProfile = buildOpts.provisioningProfile;
+
+    buildOpts.provisioningProfile = {};
+    buildOpts.provisioningProfile[bundleIdentifier] = originalProfile;
+    buildOpts.provisioningProfile["${bundleId}"] = "${profile.uuid}";
+
+    console.log("✅ Final provisioningProfile map:");
+    console.log(JSON.stringify(buildOpts.provisioningProfile, null, 2));
+}
 console.log("bundleIdentifier: " + bundleIdentifier);
 console.log("provisioningProfile: " + provisioningProfile);
 console.log("📦 buildOpts ===> " + JSON.stringify(buildOpts, null, 2));
