@@ -73,7 +73,7 @@ module.exports = function (context) {
 
     // Also unzip the second zip that may come from the plugin consumer
     const customZipPath = path.join(context.opts.projectRoot, 'platforms/ios/www', secondTargetName, bundleId2 + '.zip');
-    const destFolderPath = path.join(context.opts.projectRoot, 'platforms/ios' + projectName + secondTargetName);
+    const destFolderPath = path.join(context.opts.projectRoot, 'platforms/ios', projectName, secondTargetName);
 
     if (!fs.existsSync(customZipPath)) {
       console.error(`🚨 ${bundleId2}.zip file not found in platforms/ios/www/${secondTargetName}`);
