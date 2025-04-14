@@ -179,6 +179,7 @@ module.exports = function (context) {
   const searchLine = `if (buildOpts.provisioningProfile && bundleIdentifier) {`;
 
   const replacementBlock = `
+const provisioningProfile = buildOpts.provisioningProfile;
 console.log("provisioningProfile: " + provisioningProfile);
 console.log("📦 buildOpts ===> " + JSON.stringify(buildOpts, null, 2));
 buildOpts.provisioningProfile = {
