@@ -123,11 +123,20 @@ module.exports = function (context) {
       fs.renameSync(originalPath, renamedPath);
       console.log(`✅ Renamed ${originalProvisionFile} → ${profile2.uuid}.mobileprovision`);
 
-      //fs.copyFileSync(originalPath, renamedPath);
-      //fs.copyFileSync(renamedPath, path.join(context.opts.plugin.dir, 'provisioning-profiles', `${profile2.uuid}.mobileprovision`));
-      //fs.copyFileSync(renamedPath, path.join(context.opts.projectRoot, 'platforms', platform, 'app', `${profile2.uuid}.mobileprovision`));
-      fs.copyFileSync(renamedPath, path.join(os.homedir(), 'Library/MobileDevice/Provisioning Profiles', `${profile2.uuid}.mobileprovision`));
-      console.log(`✅ ${originalProvisionFile} copied to: Library/MobileDevice/Provisioning Profiles`);
+      // Wait until the renamed file is truly available
+      let retries = 5;
+      while (!fs.existsSync(renamedPath) && retries > 0) {
+        console.warn(`⏳ Waiting for file system to catch up: ${renamedPath}`);
+        Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 100);
+        retries--;
+      }
+
+      // Now copy to Library path
+      fs.copyFileSync(
+        renamedPath,
+        path.join(os.homedir(), 'Library/MobileDevice/Provisioning Profiles', `${profile2.uuid}.mobileprovision`)
+      );
+      console.log(`✅ ${profile2.uuid}.mobileprovision copied to: Library/MobileDevice/Provisioning Profiles`);
     }
 
     // Patch build.js
