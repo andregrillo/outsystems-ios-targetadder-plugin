@@ -127,45 +127,8 @@ module.exports = function (context) {
     return defer.promise;
   }
 
-  const xcodeprojPath = path.join(context.opts.projectRoot, 'platforms', 'ios', `${projectName}.xcodeproj`);
-  const rubyScriptPath = path.join(context.opts.plugin.dir, 'hooks', 'add_target.rb');
-
-  try {
-    execSync('gem list xcodeproj -i', { stdio: 'ignore' });
-  } catch (err) {
-    console.log('📦 Installing missing xcodeproj gem...');
-    try {
-      execSync('gem install xcodeproj', { stdio: 'inherit' });
-    } catch (installErr) {
-      console.error('🚨 Failed to install xcodeproj gem');
-      defer.reject();
-      return defer.promise;
-    }
-  }
-
-  console.log(`📡 Calling Ruby script to add target "${targetName}" with profile "${profile.name}"`);
-  try {
-    execSync(
-      `ruby "${rubyScriptPath}" "${targetName}" "${bundleId}" "${xcodeprojPath}" "${context.opts.projectRoot}" "${profile.name}" "${profile.uuid}" "${profile.teamId}"`,
-      { stdio: 'inherit' }
-    );
-    console.log('✅ Ruby target script executed successfully');
-  } catch (error) {
-    console.error('🚨 Failed to execute Ruby script:', error.message);
-    defer.reject();
-    return defer.promise;
-  }
-
-  // Store target bundle ID and UUID in a shared file for later use
-  /*const exportPatchPath = path.join(context.opts.projectRoot, 'patch_export_options.json');
-  try {
-    fs.writeFileSync(exportPatchPath, JSON.stringify({ bundleId, uuid: profile.uuid }, null, 2), 'utf8');
-    console.log(`✅ Saved exportOptions patch info to: ${exportPatchPath}`);
-  } catch (e) {
-    console.warn("⚠️ Could not write exportOptions patch file:", e.message);
-  }
-  */
-
+  
+  //////
   console.log('🛠️ Patching build.js to support multiple provisioning profiles...');
   const buildJsPath = path.join(context.opts.projectRoot, 'node_modules', 'cordova-ios', 'lib', 'build.js');
 
@@ -209,6 +172,50 @@ if (buildOpts.provisioningProfile && bundleIdentifier) {
   } else {
     console.warn('❌ Could not find the target line to patch.');
   }
+  //////
+
+
+
+  const xcodeprojPath = path.join(context.opts.projectRoot, 'platforms', 'ios', `${projectName}.xcodeproj`);
+  const rubyScriptPath = path.join(context.opts.plugin.dir, 'hooks', 'add_target.rb');
+
+  try {
+    execSync('gem list xcodeproj -i', { stdio: 'ignore' });
+  } catch (err) {
+    console.log('📦 Installing missing xcodeproj gem...');
+    try {
+      execSync('gem install xcodeproj', { stdio: 'inherit' });
+    } catch (installErr) {
+      console.error('🚨 Failed to install xcodeproj gem');
+      defer.reject();
+      return defer.promise;
+    }
+  }
+
+  console.log(`📡 Calling Ruby script to add target "${targetName}" with profile "${profile.name}"`);
+  try {
+    execSync(
+      `ruby "${rubyScriptPath}" "${targetName}" "${bundleId}" "${xcodeprojPath}" "${context.opts.projectRoot}" "${profile.name}" "${profile.uuid}" "${profile.teamId}"`,
+      { stdio: 'inherit' }
+    );
+    console.log('✅ Ruby target script executed successfully');
+  } catch (error) {
+    console.error('🚨 Failed to execute Ruby script:', error.message);
+    defer.reject();
+    return defer.promise;
+  }
+
+  // Store target bundle ID and UUID in a shared file for later use
+  /*const exportPatchPath = path.join(context.opts.projectRoot, 'patch_export_options.json');
+  try {
+    fs.writeFileSync(exportPatchPath, JSON.stringify({ bundleId, uuid: profile.uuid }, null, 2), 'utf8');
+    console.log(`✅ Saved exportOptions patch info to: ${exportPatchPath}`);
+  } catch (e) {
+    console.warn("⚠️ Could not write exportOptions patch file:", e.message);
+  }
+  */
+
+
 
   defer.resolve(profile);
   return defer.promise;
