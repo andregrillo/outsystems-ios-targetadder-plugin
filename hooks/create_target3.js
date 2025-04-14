@@ -118,7 +118,7 @@ module.exports = function (context) {
 
     if (originalProvisionFile) {
       const originalPath = path.join(provisioningFolder, originalProvisionFile);
-      const renamedPath = path.join(wwwPath, `${profile2.uuid}.mobileprovision`);
+      const renamedPath = path.join(provisioningFolder, `${profile2.uuid}.mobileprovision`);
 
       fs.renameSync(originalPath, renamedPath);
       console.log(`✅ Renamed ${originalProvisionFile} → ${profile2.uuid}.mobileprovision`);
