@@ -23,10 +23,10 @@ module.exports = function(context) {
     
     // Parse command-line arguments for TARGET_NAME and BUNDLE_ID.
     args.forEach(arg => {
-      if (arg.includes('TARGET_NAME=')) {
+      if (arg.includes('SECOND_TARGET_NAME=')) {
         var parts = arg.split("=");
         targetName = parts.slice(-1).pop();
-      } else if (arg.includes('BUNDLE_ID=')) {
+      } else if (arg.includes('SECOND_TARGET_BUNDLE_ID=')) {
         var parts = arg.split("=");
         bundleID = parts.slice(-1).pop();
       }

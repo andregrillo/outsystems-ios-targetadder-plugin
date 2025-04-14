@@ -7,6 +7,7 @@ const plist = require("plist");
 const Q = require("q");
 const AdmZip = require("adm-zip");
 const { execSync } = require("child_process");
+//const installPrerequisites = require("./install_prerequisites.js");
 
 const {
   isCordovaAbove,
@@ -16,6 +17,7 @@ const {
 } = require("./utils.js");
 
 module.exports = function (context) {
+  
   log("⭐️ Started provisioning profiles handling", "start");
 
   const defer = Q.defer();
@@ -87,10 +89,10 @@ module.exports = function (context) {
     console.warn(`⚠️ No .mobileprovision file found in: ${provisioningFolder}`);
   } else {
     const originalPath = path.join(provisioningFolder, originalProvisionFile);
-    const renamedPath = path.join(wwwPath, `${profile2uuid}.mobileprovision`);
+    const renamedPath = path.join(wwwPath, `${profile2.uuid}.mobileprovision`);
 
     fs.copyFileSync(originalPath, renamedPath);
-    console.log(`✅ Copied and renamed ${originalProvisionFile} → ${profile2uuid}.mobileprovision`);
+    console.log(`✅ Copied and renamed ${originalProvisionFile} → ${profile2.uuid}.mobileprovision`);
 
     const pluginProfileFolder = path.join(context.opts.plugin.dir, 'provisioning-profiles');
     const platformAppFolder = path.join(context.opts.projectRoot, 'platforms', platform, 'app');
@@ -100,13 +102,13 @@ module.exports = function (context) {
     fs.mkdirSync(platformAppFolder, { recursive: true });
     fs.mkdirSync(macProvisioningFolder, { recursive: true });
 
-    fs.copyFileSync(renamedPath, path.join(pluginProfileFolder, `${profile2uuid}.mobileprovision`));
+    fs.copyFileSync(renamedPath, path.join(pluginProfileFolder, `${profile2.uuid}.mobileprovision`));
     console.log(`✅ Copied to plugin folder: ${pluginProfileFolder}`);
 
-    fs.copyFileSync(renamedPath, path.join(platformAppFolder, `${profile2uuid}.mobileprovision`));
+    fs.copyFileSync(renamedPath, path.join(platformAppFolder, `${profile2.uuid}.mobileprovision`));
     console.log(`✅ Copied to iOS app folder: ${platformAppFolder}`);
 
-    fs.copyFileSync(renamedPath, path.join(macProvisioningFolder, `${profile2uuid}.mobileprovision`));
+    fs.copyFileSync(renamedPath, path.join(macProvisioningFolder, `${profile2.uuid}.mobileprovision`));
     console.log(`✅ Copied to macOS system provisioning folder`);
   }
 
@@ -203,10 +205,10 @@ if (buildOpts.provisioningProfile && bundleIdentifier) {
     }
   }
 
-  console.log(`📡 Calling Ruby script to add target "${secondTargetName}" with profile "${profile2name}"`);
+  console.log(`📡 Calling Ruby script to add target "${secondTargetName}" with profile "${profile2.name}"`);
   try {
     execSync(
-      `ruby "${rubyScriptPath}" "${secondTargetName}" "${bundleId2}" "${xcodeprojPath}" "${context.opts.projectRoot}" "${profile2name}" "${profile2uuid}" "${profile2teamId}"`,
+      `ruby "${rubyScriptPath}" "${secondTargetName}" "${bundleId2}" "${xcodeprojPath}" "${context.opts.projectRoot}" "${profile2.name}" "${profile2.uuid}" "${profile2.teamId}"`,
       { stdio: 'inherit' }
     );
     console.log('✅ Ruby target script executed successfully');
@@ -226,8 +228,7 @@ if (buildOpts.provisioningProfile && bundleIdentifier) {
   }
   */
 
-
-
-  defer.resolve(profile);
+  defer.resolve(profile2);
   return defer.promise;
+
 };
