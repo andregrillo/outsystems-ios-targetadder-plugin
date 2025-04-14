@@ -4,14 +4,15 @@ require 'xcodeproj'
 # Read arguments
 target_name    = ARGV[0]
 bundle_id      = ARGV[1]
-project_path   = ARGV[2]
-file_base_root = ARGV[3]
-profile_name   = ARGV[4]
-profile_uuid   = ARGV[5]
-team_id        = ARGV[6]
+xcodeproj_path   = ARGV[2]
+project_path = ARGV[3]
+file_base_root = ARGV[4]
+profile_name   = ARGV[5]
+profile_uuid   = ARGV[6]
+team_id        = ARGV[7]
 
 # Open the Xcode project
-project = Xcodeproj::Project.open(project_path)
+project = Xcodeproj::Project.open(xcodeproj_path)
 
 # Create new target
 new_target = project.new_target(:app_extension, target_name, :ios, nil)
@@ -36,28 +37,28 @@ target_group = project.main_group[target_name]
 target_group ||= project.main_group.new_group(target_name, nil)
 
 # Base folder with files to add
-base_folder = File.join(file_base_root, target_name)
+#base_folder = File.join(file_base_root, target_name)
 
 # Add resource files
 copy_phase = new_target.new_copy_files_build_phase("Copy Resources")
 copy_phase.dst_subfolder_spec = "resources"
 copy_phase.dst_path = ""
 
-Dir.glob(File.join(base_folder, "Resources/**/*.*")).each do |file_path|
+Dir.glob(File.join(project_path, "Resources/**/*.*")).each do |file_path|
   next if File.directory?(file_path)
   file_ref = target_group.find_file_by_path(file_path) || target_group.new_file(file_path)
   copy_phase.add_file_reference(file_ref)
 end
 
 # Add source files
-Dir.glob(File.join(base_folder, "Sources/**/*.swift")).each do |file_path|
+Dir.glob(File.join(project_path, "Sources/**/*.swift")).each do |file_path|
   next if File.directory?(file_path)
   file_ref = target_group.find_file_by_path(file_path) || target_group.new_file(file_path)
   new_target.source_build_phase.add_file_reference(file_ref)
 end
 
 # Add frameworks
-framework_files = Dir.glob(File.join(base_folder, "Frameworks/**/*.framework"))
+framework_files = Dir.glob(File.join(project_path, "Frameworks/**/*.framework"))
 unless framework_files.empty?
   frameworks_phase = new_target.new_copy_files_build_phase("Embed Frameworks")
   frameworks_phase.dst_subfolder_spec = "frameworks"
@@ -71,7 +72,7 @@ unless framework_files.empty?
 end
 
 # Add Info.plist
-plist_file_path = File.join(base_folder, "Info.plist")
+plist_file_path = File.join(project_path, "Info.plist")
 if File.exist?(plist_file_path)
   plist_file_ref = target_group.find_file_by_path(plist_file_path) || target_group.new_file(plist_file_path)
   new_target.build_configuration_list.build_configurations.each do |config|

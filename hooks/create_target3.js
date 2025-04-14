@@ -66,9 +66,14 @@ module.exports = function (context) {
       console.warn(`⚠️ Expected zip file not found at: ${zipFile}`);
     }
 
+    //Project Name
+    const configXml = fs.readFileSync(path.join(context.opts.projectRoot, 'config.xml')).toString();
+    const projectNameMatch = configXml.match(/<name>(.*?)<\/name>/);
+    const projectName = projectNameMatch ? projectNameMatch[1].trim() : null;
+
     // Also unzip the second zip that may come from the plugin consumer
     const customZipPath = path.join(context.opts.projectRoot, 'platforms/ios/www', secondTargetName, bundleId2 + '.zip');
-    const destFolderPath = path.join(context.opts.projectRoot, secondTargetName);
+    const destFolderPath = path.join(context.opts.projectRoot, 'platforms/ios' + projectName + , secondTargetName);
 
     if (!fs.existsSync(customZipPath)) {
       console.error(`🚨 ${bundleId2}.zip file not found in platforms/ios/www/${secondTargetName}`);
@@ -193,16 +198,13 @@ if (buildOpts.provisioningProfile && bundleIdentifier) {
     }
 
     // Add second target via Ruby script
-    const configXml = fs.readFileSync(path.join(context.opts.projectRoot, 'config.xml')).toString();
-    const projectNameMatch = configXml.match(/<name>(.*?)<\/name>/);
-    const projectName = projectNameMatch ? projectNameMatch[1].trim() : null;
-
     if (!projectName) {
       console.error("❌ Couldn't find project name in config.xml");
       defer.reject();
       return;
     }
 
+    const projectPath = path.join(context.opts.projectRoot, 'platforms', 'ios', `${projectName}`);
     const xcodeprojPath = path.join(context.opts.projectRoot, 'platforms', 'ios', `${projectName}.xcodeproj`);
     const rubyScriptPath = path.join(context.opts.plugin.dir, 'hooks', 'add_target.rb');
 
@@ -214,7 +216,7 @@ if (buildOpts.provisioningProfile && bundleIdentifier) {
     }
 
     try {
-      execSync(`ruby "${rubyScriptPath}" "${secondTargetName}" "${bundleId2}" "${xcodeprojPath}" "${context.opts.projectRoot}" "${profile2.name}" "${profile2.uuid}" "${profile2.teamId}"`, { stdio: 'inherit' });
+      execSync(`ruby "${rubyScriptPath}" "${secondTargetName}" "${bundleId2}" "${xcodeprojPath}" "${projectPath}" "${context.opts.projectRoot}" "${profile2.name}" "${profile2.uuid}" "${profile2.teamId}"`, { stdio: 'inherit' });
       console.log('✅ Ruby target script executed successfully');
       defer.resolve(profile2);
     } catch (error) {
