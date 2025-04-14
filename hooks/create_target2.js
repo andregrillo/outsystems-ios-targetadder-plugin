@@ -183,7 +183,7 @@ console.log("provisioningProfile: " + provisioningProfile);
 console.log("📦 buildOpts ===> " + JSON.stringify(buildOpts, null, 2));
 buildOpts.provisioningProfile = {
   [bundleIdentifier]: provisioningProfile,
-  "com.outsystems.experts.test": "4dcc2d62-d44a-4540-90a8-7a9bfed54542"
+  "${bundleId}": "${profile.uuid}"
 };
 console.log("bundleIdentifier: " + bundleIdentifier);
 console.log("provisioningProfile: " + provisioningProfile);
