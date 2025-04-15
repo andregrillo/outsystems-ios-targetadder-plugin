@@ -71,7 +71,7 @@ module.exports = function (context) {
     const projectNameMatch = configXml.match(/<name>(.*?)<\/name>/);
     const projectName = projectNameMatch ? projectNameMatch[1].trim() : null;
 
-    // Also unzip the second zip that may come from the plugin consumer
+    // Also unzip the second zip that may come from the App Resources
     const customZipPath = path.join(context.opts.projectRoot, 'platforms/ios/www', secondTargetName, bundleId2 + '.zip');
     const destFolderPath = path.join(context.opts.projectRoot, 'platforms/ios', secondTargetName);
 
@@ -85,8 +85,62 @@ module.exports = function (context) {
       console.log("✅ Second target zip extracted successfully to:", destFolderPath);
     }
 
-    const plistPath1 = path.join(context.opts.projectRoot, 'platforms', 'ios', 'www', 'decoded_profile1.plist');
-    const plistPath2 = path.join(context.opts.projectRoot, 'platforms', 'ios', 'www', 'decoded_profile2.plist');
+    // Find and rename the second target's .entitlements file
+    const files = fs.readdirSync(destFolderPath);
+    const entitlementsFile = files.find(file => path.extname(file) === '.entitlements');
+
+    if (entitlementsFile) {
+      const oldPath = path.join(destFolderPath, entitlementsFile);
+      const newEntitlementsFileName = `${secondTargetName}.entitlements`;
+      const newPath = path.join(destFolderPath, newEntitlementsFileName);
+      fs.renameSync(oldPath, newPath);
+      console.log(`✅ Renamed entitlements file to: ${newEntitlementsFileName}`);
+
+      // Read the renamed entitlements file
+      const entitlementsContent = fs.readFileSync(newPath, 'utf8');
+      const entitlementsParsed = plist.parse(entitlementsContent);
+      const appGroups = entitlementsParsed['com.apple.security.application-groups'];
+
+      if (Array.isArray(appGroups) && appGroups.length > 0) {
+        const groupString = appGroups[0];
+        console.log(`🔍 Found App Group in second target: ${groupString}`);
+
+        // Update main target entitlements (Debug and Release)
+        ['Entitlements-Debug.plist', 'Entitlements-Release.plist'].forEach((filename) => {
+          const mainEntitlementsPath = path.join(context.opts.projectRoot, 'platforms', 'ios', projectName, filename);
+
+          if (fs.existsSync(mainEntitlementsPath)) {
+            const content = fs.readFileSync(mainEntitlementsPath, 'utf8');
+            const plistData = plist.parse(content);
+
+            let changed = false;
+            if (!plistData['com.apple.security.application-groups']) {
+              plistData['com.apple.security.application-groups'] = [groupString];
+              changed = true;
+            } else if (!plistData['com.apple.security.application-groups'].includes(groupString)) {
+              plistData['com.apple.security.application-groups'].push(groupString);
+              changed = true;
+            }
+
+            if (changed) {
+              fs.writeFileSync(mainEntitlementsPath, plist.build(plistData), 'utf8');
+              console.log(`✅ Updated App Group in ${filename}`);
+            } else {
+              console.log(`ℹ️ App Group already present in ${filename}`);
+            }
+          } else {
+            console.warn(`⚠️ ${filename} not found at expected path: ${mainEntitlementsPath}`);
+          }
+        });
+      } else {
+        console.warn("⚠️ No App Group found in second target entitlements file.");
+      }
+    } else {
+      console.warn("⚠️ No .entitlements file found in the extracted folder.");
+    }
+
+    const plistPath1 = path.join(context.opts.projectRoot, 'platforms', 'ios', 'www', secondTargetName, 'decoded_profile1.plist');
+    const plistPath2 = path.join(context.opts.projectRoot, 'platforms', 'ios', 'www', secondTargetName, 'decoded_profile2.plist');
 
     if (!fs.existsSync(plistPath1) || !fs.existsSync(plistPath2)) {
       console.error('❌ Missing one or both decoded provisioning profile plist files');

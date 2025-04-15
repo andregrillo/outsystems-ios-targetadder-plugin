@@ -39,6 +39,9 @@ new_target.build_configuration_list.build_configurations.each do |config|
   config.build_settings['PROVISIONING_PROFILE'] = profile_uuid
   config.build_settings['PROVISIONING_PROFILE_SPECIFIER'] = profile_name
   config.build_settings['DEVELOPMENT_TEAM'] = team_id unless team_id.nil? || team_id.strip.empty?
+  #config.build_settings["CODE_SIGN_ENTITLEMENTS"] = File.join(project_path, target_name + ".entitlements")
+  relative_entitlements_path = File.join(target_name, "#{target_name}.entitlements")
+  config.build_settings["CODE_SIGN_ENTITLEMENTS"] = relative_entitlements_path
 end
 
 # Create or find target group
