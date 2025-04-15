@@ -7,6 +7,7 @@
 		<preference name="FIRST_TARGET_BUNDLEID" />
 		<preference name="SECOND_TARGET_NAME" />
 		<preference name="SECOND_TARGET_BUNDLE_ID" />
+		<preference name="APP_GROUP" />
 		
 		<hook type="after_plugin_install" src="hooks/create_target.js"/>
 		<hook type="after_plugin_add" src="hooks/add_swift_support.js" />
